@@ -48,9 +48,9 @@ i32 prompt(const char *msg) {
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, mem);
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-  char *in_json =
-      malloc(strnlen(msg, MAX_MSG_LENGTH) + 1500); // +300 for json overhead
-  snprintf(in_json, MAX_MSG_LENGTH + 1500,
+  u32 msglen = strnlen(msg, MAX_MSG_LENGTH);
+  char *in_json = malloc(strlen(soul) + msglen + 600); // +600 for json overhead
+  snprintf(in_json, MAX_MSG_LENGTH + 600,
            "{\"model\": \"moonshotai/kimi-k2.5\",\"messages\": [ "
            "{\"role\": \"system\", \"content\": \"%s\"},"
            "{\"role\": \"user\", \"content\": \"%s\"}], \"reasoning\": "
@@ -58,21 +58,30 @@ i32 prompt(const char *msg) {
            soul, msg);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, in_json);
   res = curl_easy_perform(curl);
+  // cleanup curl
+  curl_slist_free_all(headers);
+  // flush buffer memstream
+  fflush(mem);
   fclose(mem);
+  // handle http resp
   if (res != CURLE_OK) {
     fprintf(stderr, "failed to curl openrouter: %s\n", curl_easy_strerror(res));
     free(in_json);
     free(buf);
     return -1;
   }
-  // parse response
+  // parse resp
   i32 n =
       mjson_get_string(buf, (int)strlen(buf), "$.choices[0].message.content",
                        response_buf, (int)MAX_MSG_LENGTH);
-  printf("> %s\n", response_buf);
-  if (n >= 0)
-    return 0;
+  if (n <= 0) {
+    fprintf(stderr, "failed to parse message from response: %s\n", buf);
+    free(in_json);
+    free(buf);
+    return -1;
+  }
 
+  printf("> %s\n", response_buf);
   free(in_json);
   free(buf);
   return 0;
@@ -98,10 +107,12 @@ i32 main(i32 argc, char **argv) {
   snprintf(auth_header, AUTH_HEADER_LENGTH, "Authorization: Bearer %s",
            auth_token);
 
+  curl_global_init(CURL_GLOBAL_DEFAULT);
   curl = curl_easy_init();
   // todo
   i32 res = prompt(argv[1]);
 
+  curl_easy_cleanup(curl);
   curl_global_cleanup();
   // cleanup
   free(auth_header);

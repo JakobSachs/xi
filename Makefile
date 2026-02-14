@@ -1,6 +1,6 @@
 CC ?= gcc
 PKGS ?= libcurl ncurses
-CFLAGS += -O2 -Wall -Wextra $(shell pkg-config --cflags $(PKGS))
+CFLAGS += -O2 -g -Wall -Wextra $(shell pkg-config --cflags $(PKGS))
 LDLIBS += $(shell pkg-config --libs $(PKGS))
 
 xi: xi.c
