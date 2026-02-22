@@ -1,4 +1,4 @@
-CC ?= gcc
+CC ?= clang-19
 PKGS ?= libcurl ncurses
 CFLAGS += -O2 -g -Wall -Wextra $(shell pkg-config --cflags $(PKGS))
 LDLIBS += $(shell pkg-config --libs $(PKGS))
