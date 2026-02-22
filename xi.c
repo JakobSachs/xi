@@ -139,7 +139,7 @@ i32 prompt() {
   printf("\n%.*s\n", resp_len, response_buf);
   // append response to history
   Message resp = {.content = malloc(resp_len + 1),
-                  .content_len = resp_len + 1, // not sure if +1 is right here
+                  .content_len = resp_len, // not sure if +1 is right here
                   .role = "assistant"};
   strncpy(resp.content, response_buf, resp_len + 1);
   CHAT_APPEND(resp);
