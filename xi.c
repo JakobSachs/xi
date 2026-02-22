@@ -17,6 +17,9 @@ typedef int32_t i32;
 
 #include "mjson/mjson.h"
 
+#include <readline/history.h>
+#include <readline/readline.h>
+
 CURL *curl;
 char *auth_header;
 
@@ -178,14 +181,11 @@ i32 main() {
   CHAT_APPEND(soul);
 
   // start loop
-  char input[1024];
   while (1) {
-    printf("> ");
-    fflush(stdout);
+    char *input = readline("> ");
 
-    if (!fgets(input, sizeof(input), stdin)) {
-      break; // eof or err
-    }
+    add_history(input);
+
     input[strcspn(input, "\n")] = '\0';
     Message user_msg = {.content = malloc(strlen(input) + 1),
                         .role = "user",
@@ -193,6 +193,7 @@ i32 main() {
     user_msg.content[user_msg.content_len] = '\0';
     memcpy(user_msg.content, input, user_msg.content_len + 1);
 
+    free(input);
     CHAT_APPEND(user_msg);
     if (prompt() != 0) {
       break; // err
