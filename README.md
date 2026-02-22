@@ -5,5 +5,5 @@
 - 100% human handcoded
 - In C because it's fun, but it might be leaky
 - Using github.com/cesanta/mjson for json parsing
-- Dont use this, i dont use this even (yet)
+- Dont use this, i dont use this even (yet) execept for working on xi itself
 
